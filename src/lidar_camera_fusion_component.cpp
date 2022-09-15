@@ -20,6 +20,7 @@
 #include <vision_msgs/msg/bounding_box2_d.hpp>
 
 // Headers needed in this component
+#include <boost/assign/list_of.hpp>
 #include <boost/geometry.hpp>
 #include <boost/geometry/algorithms/intersection.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
@@ -58,28 +59,36 @@ double getIoU(vision_msgs::msg::BoundingBox2D a, vision_msgs::msg::BoundingBox2D
 {
   typedef boost::geometry::model::d2::point_xy<double> point;
   typedef boost::geometry::model::polygon<point> polygon;
-  typedef boost::geometry::model::box<point> box;
 
-  //FIXME:
-  //  box box_a(
-  //        point(a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0),
-  //        point(a.center.x + a.size_x / 2.0, a.center.y + a.size_y / 2.0)
-  //        );
-  //  box box_b(
-  //        point(b.center.x - b.size_x / 2.0, b.center.y - b.size_x / 2.0),
-  //        point(b.center.x + b.size_x / 2.0, b.center.x + b.size_x / 2.0)
-  //        );
+  polygon poly_a;
+  boost::geometry::exterior_ring(poly_a) = boost::assign::list_of<point>
+          (a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0)
+          (a.center.x - a.size_x / 2.0, a.center.y + a.size_y / 2.0)
+          (a.center.x + a.size_x / 2.0, a.center.y + a.size_y / 2.0)
+          (a.center.x + a.size_x / 2.0, a.center.y - a.size_y / 2.0)
+          (a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0)
+          ;
 
-  //  std::vector<polygon> union_poly, intersection;
-  //  boost::geometry::union_(box_a, box_b, union_poly);
-  //  boost::geometry::intersection(box_a, box_b, intersection);
+  polygon poly_b;
+  boost::geometry::exterior_ring(poly_b) = boost::assign::list_of<point>
+          (b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0)
+          (b.center.x - b.size_x / 2.0, b.center.y + b.size_y / 2.0)
+          (b.center.x + b.size_x / 2.0, b.center.y + b.size_y / 2.0)
+          (b.center.x + b.size_x / 2.0, b.center.y - b.size_y / 2.0)
+          (b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0)
+          ;
 
-  //  if((intersection.size() == 1) && (union_poly.size() == 0))
-  //    return 0;
-  //  else
-  //  {
-  //    return boost::geometry::area(intersection[0]) / boost::geometry::area(union_poly[0]);
-  //  }
+
+  std::vector<polygon> union_poly, intersection;
+  boost::geometry::union_(poly_a, poly_b, union_poly);
+  boost::geometry::intersection(poly_a, poly_b, intersection);
+
+  if((intersection.size() == 1) && (union_poly.size() == 0))
+    return 0;
+  else
+  {
+    return boost::geometry::area(intersection[0]) / boost::geometry::area(union_poly[0]);
+  }
 
   return 0;
 }
