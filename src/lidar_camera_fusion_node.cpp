@@ -13,8 +13,8 @@
 // limitations under the License.
 
 // Headers in this package
-#include <memory>
 #include <lidar_camera_fusion/lidar_camera_fusion_component.hpp>
+#include <memory>
 #include <rclcpp/rclcpp.hpp>
 
 int main(int argc, char * argv[])

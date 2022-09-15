@@ -26,12 +26,14 @@
 
 namespace lidar_camera_fusion
 {
-typedef message_synchronizer::MessageSynchronizer2<perception_msgs::msg::Detection2DArray, perception_msgs::msg::Detection2DArray> Sync2T;
+typedef message_synchronizer::MessageSynchronizer2<
+  perception_msgs::msg::Detection2DArray, perception_msgs::msg::Detection2DArray>
+  Sync2T;
 class LidarCameraFusionComponent : public rclcpp::Node
 {
 public:
-  lidar_camera_fusion_PUBLIC
-  explicit LidarCameraFusionComponent(const rclcpp::NodeOptions & options);
+  lidar_camera_fusion_PUBLIC explicit LidarCameraFusionComponent(
+    const rclcpp::NodeOptions & options);
 
 private:
   //  std::shared_ptr<rclcpp::Publisher<perception_msgs::msg::Tracking2D>> pub_;

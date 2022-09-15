@@ -41,19 +41,10 @@ LidarCameraFusionComponent::LidarCameraFusionComponent(const rclcpp::NodeOptions
   int delay;
   declare_parameter("fusion_allowed_delay_msec", 50);
   get_parameter("fusion_allowed_delay_msec", delay);
-
-
-//  std::shared_ptr<Sync2T> temp = std::make_shared(
-//        Sync2T(this, { camera_topic, lidar_topic }, std::chrono::milliseconds{duration_msec}, std::chrono::milliseconds{delay} )
-//        );
-
-//  this->sync_camera_lidar_ = temp;
-
-
-
+  sync_camera_lidar_ = std::shared_ptr<Sync2T>(new Sync2T(
+    this, {camera_topic, lidar_topic}, std::chrono::milliseconds{duration_msec},
+    std::chrono::milliseconds{delay}));
 }
-
-
 
 }  // namespace lidar_camera_fusion
 
