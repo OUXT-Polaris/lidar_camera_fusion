@@ -17,9 +17,14 @@
 
 // Components
 #include <rclcpp_components/register_node_macro.hpp>
+#include <vision_msgs/msg/bounding_box2_d.hpp>
 
 // Headers needed in this component
 #include <chrono>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/algorithms/intersection.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
 
 namespace lidar_camera_fusion
 {
@@ -44,6 +49,52 @@ LidarCameraFusionComponent::LidarCameraFusionComponent(const rclcpp::NodeOptions
   sync_camera_lidar_ = std::shared_ptr<Sync2T>(new Sync2T(
     this, {camera_topic, lidar_topic}, std::chrono::milliseconds{duration_msec},
     std::chrono::milliseconds{delay}));
+
+
+  auto temp = std::bind(&LidarCameraFusionComponent::callback, this, std::placeholders::_1, std::placeholders::_2);
+  sync_camera_lidar_->registerCallback(temp);
+
+}
+
+double getIoU(vision_msgs::msg::BoundingBox2D a, vision_msgs::msg::BoundingBox2D b) {
+  typedef boost::geometry::model::d2::point_xy<double> point;
+  typedef boost::geometry::model::polygon<point> polygon;
+  typedef boost::geometry::model::box<point> box;
+
+
+    //FIXME:
+//  box box_a(
+//        point(a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0),
+//        point(a.center.x + a.size_x / 2.0, a.center.y + a.size_y / 2.0)
+//        );
+//  box box_b(
+//        point(b.center.x - b.size_x / 2.0, b.center.y - b.size_x / 2.0),
+//        point(b.center.x + b.size_x / 2.0, b.center.x + b.size_x / 2.0)
+//        );
+
+
+//  std::vector<polygon> union_poly, intersection;
+//  boost::geometry::union_(box_a, box_b, union_poly);
+//  boost::geometry::intersection(box_a, box_b, intersection);
+
+//  if((intersection.size() == 1) && (union_poly.size() == 0))
+//    return 0;
+//  else
+//  {
+//    return boost::geometry::area(intersection[0]) / boost::geometry::area(union_poly[0]);
+//  }
+
+  return 0;
+}
+
+void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar) {
+  if (!camera || !lidar) {
+    return;
+  }
+
+  //Matching
+
+
 }
 
 }  // namespace lidar_camera_fusion

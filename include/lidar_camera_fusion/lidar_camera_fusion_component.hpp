@@ -29,6 +29,8 @@ namespace lidar_camera_fusion
 typedef message_synchronizer::MessageSynchronizer2<
   perception_msgs::msg::Detection2DArray, perception_msgs::msg::Detection2DArray>
   Sync2T;
+typedef const boost::optional<const perception_msgs::msg::Detection2DArray> & CallbackT;
+
 class LidarCameraFusionComponent : public rclcpp::Node
 {
 public:
@@ -39,5 +41,6 @@ private:
   //  std::shared_ptr<rclcpp::Publisher<perception_msgs::msg::Tracking2D>> pub_;
   //  std::shared_ptr<rclcpp::Subscription<perception_msgs::msg::Tracking2D>> sub_;
   std::shared_ptr<Sync2T> sync_camera_lidar_;
+  void callback(CallbackT camera, CallbackT lidar);
 };
 }  // namespace lidar_camera_fusion
