@@ -26,6 +26,7 @@
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <chrono>
+#include "lidar_camera_fusion/hungarian.hpp"
 
 namespace lidar_camera_fusion
 {
@@ -99,7 +100,33 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
     return;
   }
 
-  //Matching
+  // Hungarian matching solver.
+  HungarianAlgorithm solver;
+
+  // Allocate 2-dim array in advance.
+  std::vector<std::vector<double>> iou_matrix;
+  size_t m = camera.value()->detections.size();
+  size_t n = lidar.value()->detections.size();
+
+  // See: https://stackoverflow.com/questions/15889578/how-can-i-resize-a-2d-vector-of-objects-given-the-width-and-height
+  iou_matrix.resize(m, std::vector<double>(n));
+
+  // Calculate all the IoUs.
+  // The number of the items should be m * n.
+  auto camera_det = camera.value()->detections;
+  auto lidar_det = lidar.value()->detections;
+
+    for (size_t i = 0; i < m; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            iou_matrix[i][j] = getIoU(camera_det[i].bbox, lidar_det[j].bbox);
+        }
+    }
+
+    std::vector<int> assignments;
+  solver.Solve(iou_matrix, assignments);
+
+
+
 }
 
 }  // namespace lidar_camera_fusion

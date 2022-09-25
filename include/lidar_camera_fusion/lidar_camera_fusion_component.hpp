@@ -38,8 +38,7 @@ public:
     const rclcpp::NodeOptions & options);
 
 private:
-  //  std::shared_ptr<rclcpp::Publisher<perception_msgs::msg::Tracking2D>> pub_;
-  //  std::shared_ptr<rclcpp::Subscription<perception_msgs::msg::Tracking2D>> sub_;
+  std::shared_ptr<rclcpp::Publisher<perception_msgs::msg::Detection2DArray>> pub_;
   std::shared_ptr<Sync2T> sync_camera_lidar_;
   void callback(CallbackT camera, CallbackT lidar);
 };
