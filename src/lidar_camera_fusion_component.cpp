@@ -26,6 +26,7 @@
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <chrono>
+
 #include "lidar_camera_fusion/hungarian.hpp"
 
 namespace lidar_camera_fusion
@@ -62,32 +63,28 @@ double getIoU(vision_msgs::msg::BoundingBox2D a, vision_msgs::msg::BoundingBox2D
   typedef boost::geometry::model::polygon<point> polygon;
 
   polygon poly_a;
-  boost::geometry::exterior_ring(poly_a) = boost::assign::list_of<point>
-          (a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0)
-          (a.center.x - a.size_x / 2.0, a.center.y + a.size_y / 2.0)
-          (a.center.x + a.size_x / 2.0, a.center.y + a.size_y / 2.0)
-          (a.center.x + a.size_x / 2.0, a.center.y - a.size_y / 2.0)
-          (a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0)
-          ;
+  boost::geometry::exterior_ring(poly_a) =
+    boost::assign::list_of<point>(a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0)(
+      a.center.x - a.size_x / 2.0, a.center.y + a.size_y / 2.0)(
+      a.center.x + a.size_x / 2.0, a.center.y + a.size_y / 2.0)(
+      a.center.x + a.size_x / 2.0, a.center.y - a.size_y / 2.0)(
+      a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0);
 
   polygon poly_b;
-  boost::geometry::exterior_ring(poly_b) = boost::assign::list_of<point>
-          (b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0)
-          (b.center.x - b.size_x / 2.0, b.center.y + b.size_y / 2.0)
-          (b.center.x + b.size_x / 2.0, b.center.y + b.size_y / 2.0)
-          (b.center.x + b.size_x / 2.0, b.center.y - b.size_y / 2.0)
-          (b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0)
-          ;
-
+  boost::geometry::exterior_ring(poly_b) =
+    boost::assign::list_of<point>(b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
+      b.center.x - b.size_x / 2.0, b.center.y + b.size_y / 2.0)(
+      b.center.x + b.size_x / 2.0, b.center.y + b.size_y / 2.0)(
+      b.center.x + b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
+      b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0);
 
   std::vector<polygon> union_poly, intersection;
   boost::geometry::union_(poly_a, poly_b, union_poly);
   boost::geometry::intersection(poly_a, poly_b, intersection);
 
-  if((intersection.size() == 1) && (union_poly.size() == 0))
+  if ((intersection.size() == 1) && (union_poly.size() == 0))
     return 0;
-  else
-  {
+  else {
     return boost::geometry::area(intersection[0]) / boost::geometry::area(union_poly[0]);
   }
 
@@ -116,17 +113,14 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
   auto camera_det = camera.value()->detections;
   auto lidar_det = lidar.value()->detections;
 
-    for (size_t i = 0; i < m; ++i) {
-        for (size_t j = 0; j < n; ++j) {
-            iou_matrix[i][j] = getIoU(camera_det[i].bbox, lidar_det[j].bbox);
-        }
+  for (size_t i = 0; i < m; ++i) {
+    for (size_t j = 0; j < n; ++j) {
+      iou_matrix[i][j] = getIoU(camera_det[i].bbox, lidar_det[j].bbox);
     }
+  }
 
-    std::vector<int> assignments;
+  std::vector<int> assignments;
   solver.Solve(iou_matrix, assignments);
-
-
-
 }
 
 }  // namespace lidar_camera_fusion
