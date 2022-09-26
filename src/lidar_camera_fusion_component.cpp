@@ -46,9 +46,14 @@ LidarCameraFusionComponent::LidarCameraFusionComponent(const rclcpp::NodeOptions
   int duration_msec;
   declare_parameter("fusion_poll_period_msec", 100);
   get_parameter("fusion_poll_period_msec", duration_msec);
+
   int delay;
   declare_parameter("fusion_allowed_delay_msec", 50);
   get_parameter("fusion_allowed_delay_msec", delay);
+
+  declare_parameter("iou_lower_bound", 0.5);
+  get_parameter("iou_lower_bound", iou_lower_bound);
+
   sync_camera_lidar_ = std::shared_ptr<Sync2T>(new Sync2T(
     this, {camera_topic, lidar_topic}, std::chrono::milliseconds{duration_msec},
     std::chrono::milliseconds{delay}));
@@ -102,25 +107,49 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
 
   // Allocate 2-dim array in advance.
   std::vector<std::vector<double>> iou_matrix;
-  size_t m = camera.value()->detections.size();
-  size_t n = lidar.value()->detections.size();
+  size_t m = lidar.value()->detections.size();
+  size_t n = camera.value()->detections.size();
 
   // See: https://stackoverflow.com/questions/15889578/how-can-i-resize-a-2d-vector-of-objects-given-the-width-and-height
   iou_matrix.resize(m, std::vector<double>(n));
 
   // Calculate all the IoUs.
   // The number of the items should be m * n.
-  auto camera_det = camera.value()->detections;
   auto lidar_det = lidar.value()->detections;
+  auto camera_det = camera.value()->detections;
 
   for (size_t i = 0; i < m; ++i) {
     for (size_t j = 0; j < n; ++j) {
-      iou_matrix[i][j] = getIoU(camera_det[i].bbox, lidar_det[j].bbox);
+      iou_matrix[i][j] = getIoU(lidar_det[i].bbox, camera_det[j].bbox);
     }
   }
 
   std::vector<int> assignments;
   solver.Solve(iou_matrix, assignments);
+
+
+  // Compose a message
+  perception_msgs::msg::Detection3DArray d3d_array;
+  d3d_array.header = lidar.value()->header;
+  // Filter detections
+  for (size_t i = 0; i < assignments.size(); ++i)
+  {
+    size_t j = assignments[i];
+
+    if (iou_matrix[i][j] >= iou_lower_bound && lidar_det[i].bbox_3d.empty())
+    {
+      perception_msgs::msg::Detection3D detection3d;
+      detection3d.header = lidar_det[i].header;
+      detection3d.label = lidar_det[i].label;
+      detection3d.score = lidar_det[i].score;
+      detection3d.detection_id = lidar_det[i].detection_id;
+      detection3d.bbox = lidar_det[i].bbox_3d[0];
+
+      d3d_array.detections.emplace_back(detection3d);
+    }
+  }
+
+  pub_->publish(d3d_array);
 }
 
 }  // namespace lidar_camera_fusion

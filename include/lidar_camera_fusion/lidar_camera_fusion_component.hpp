@@ -23,6 +23,7 @@
 #include <memory>  // shared_ptr in pub_
 #include <message_synchronizer/message_synchronizer.hpp>
 #include <perception_msgs/msg/detection2_d_array.hpp>
+#include <perception_msgs/msg/detection3_d_array.hpp>
 
 namespace lidar_camera_fusion
 {
@@ -38,8 +39,10 @@ public:
     const rclcpp::NodeOptions & options);
 
 private:
-  std::shared_ptr<rclcpp::Publisher<perception_msgs::msg::Detection2DArray>> pub_;
+  std::shared_ptr<rclcpp::Publisher<perception_msgs::msg::Detection3DArray>> pub_;
   std::shared_ptr<Sync2T> sync_camera_lidar_;
   void callback(CallbackT camera, CallbackT lidar);
+
+  double iou_lower_bound;
 };
 }  // namespace lidar_camera_fusion
