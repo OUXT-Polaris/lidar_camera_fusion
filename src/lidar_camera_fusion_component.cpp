@@ -34,6 +34,9 @@ namespace lidar_camera_fusion
 LidarCameraFusionComponent::LidarCameraFusionComponent(const rclcpp::NodeOptions & options)
 : Node("lidar_camera_fusion_node", options)
 {
+
+  pub_ = this->create_publisher<perception_msgs::msg::Detection3DArray>("/detection/fusion_result", 1);
+
   // Specify the topic names from args
   std::string camera_topic;
   declare_parameter("camera_topic", "/detection/camera");
