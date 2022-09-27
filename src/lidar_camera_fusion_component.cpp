@@ -65,7 +65,8 @@ LidarCameraFusionComponent::LidarCameraFusionComponent(const rclcpp::NodeOptions
     &LidarCameraFusionComponent::callback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-double getIoU(vision_msgs::msg::BoundingBox2D a, vision_msgs::msg::BoundingBox2D b)
+double LidarCameraFusionComponent::getIoU(
+  const vision_msgs::msg::BoundingBox2D & a, const vision_msgs::msg::BoundingBox2D & b)
 {
   typedef boost::geometry::model::d2::point_xy<double> point;
   typedef boost::geometry::model::polygon<point> polygon;

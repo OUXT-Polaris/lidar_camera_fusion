@@ -39,6 +39,8 @@ public:
     const rclcpp::NodeOptions & options);
 
 private:
+  double getIoU(
+    const vision_msgs::msg::BoundingBox2D & a, const vision_msgs::msg::BoundingBox2D & b);
   std::shared_ptr<rclcpp::Publisher<perception_msgs::msg::Detection3DArray>> pub_;
   std::shared_ptr<Sync2T> sync_camera_lidar_;
   void callback(CallbackT camera, CallbackT lidar);
