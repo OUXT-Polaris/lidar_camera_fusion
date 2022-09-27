@@ -34,8 +34,8 @@ namespace lidar_camera_fusion
 LidarCameraFusionComponent::LidarCameraFusionComponent(const rclcpp::NodeOptions & options)
 : Node("lidar_camera_fusion_node", options)
 {
-
-  pub_ = this->create_publisher<perception_msgs::msg::Detection3DArray>("/detection/fusion_result", 1);
+  pub_ =
+    this->create_publisher<perception_msgs::msg::Detection3DArray>("/detection/fusion_result", 1);
 
   // Specify the topic names from args
   std::string camera_topic;
@@ -130,17 +130,14 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
   std::vector<int> assignments;
   solver.Solve(iou_matrix, assignments);
 
-
   // Compose a message
   perception_msgs::msg::Detection3DArray d3d_array;
   d3d_array.header = lidar.value()->header;
   // Filter detections
-  for (size_t i = 0; i < assignments.size(); ++i)
-  {
+  for (size_t i = 0; i < assignments.size(); ++i) {
     size_t j = assignments[i];
 
-    if (iou_matrix[i][j] >= iou_lower_bound && lidar_det[i].bbox_3d.empty())
-    {
+    if (iou_matrix[i][j] >= iou_lower_bound && lidar_det[i].bbox_3d.empty()) {
       perception_msgs::msg::Detection3D detection3d;
       detection3d.header = lidar_det[i].header;
       detection3d.label = lidar_det[i].label;
