@@ -35,15 +35,15 @@ LidarCameraFusionComponent::LidarCameraFusionComponent(const rclcpp::NodeOptions
 : Node("lidar_camera_fusion_node", options)
 {
   pub_ =
-    this->create_publisher<perception_msgs::msg::Detection3DArray>("/detection/fusion_result", 1);
+    this->create_publisher<perception_msgs::msg::Detection3DArray>("detection/fusion_result", 1);
 
   // Specify the topic names from args
   std::string camera_topic;
-  declare_parameter("camera_topic", "/detection/camera");
+  declare_parameter("camera_topic", "detection/camera");
   get_parameter("camera_topic", camera_topic);
 
   std::string lidar_topic;
-  declare_parameter("lidar_topic", "/detection/lidar");
+  declare_parameter("lidar_topic", "detection/lidar");
   get_parameter("lidar_topic", lidar_topic);
 
   int duration_msec;
