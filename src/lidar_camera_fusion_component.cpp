@@ -102,7 +102,12 @@ double LidarCameraFusionComponent::getIoU(
 
 void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
 {
-  if (!camera || !lidar) {
+  if (!camera) {
+    // RCLCPP_ERROR_STREAM(get_logger(), __FILE__ << "," << __LINE__);
+    return;
+  }
+  if (!lidar) {
+    // RCLCPP_ERROR_STREAM(get_logger(), __FILE__ << "," << __LINE__);
     return;
   }
 
