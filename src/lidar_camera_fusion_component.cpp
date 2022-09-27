@@ -123,7 +123,6 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
 
   for (size_t i = 0; i < m; ++i) {
     for (size_t j = 0; j < n; ++j) {
-      RCLCPP_WARN_STREAM(get_logger(), i << "," << j);
       iou_matrix[i][j] = getIoU(lidar_det[i].bbox, camera_det[j].bbox);
     }
   }
@@ -131,34 +130,26 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
   solver.Solve(iou_matrix, assignments);
 
   // Compose a message
-  perception_msgs::msg::Detection3DArray d3d_array;
-  d3d_array.header = lidar.value()->header;
+  perception_msgs::msg::Detection3DArray detection_3d_array;
+  detection_3d_array.header = lidar.value()->header;
   // Filter detections
   for (size_t i = 0; i < assignments.size(); ++i) {
     size_t j = assignments[i];
 
-    if (lidar_det[i].bbox_3d.empty()) {
+    if (!lidar_det[i].bbox_3d.empty()) {
       if (iou_matrix[i][j] >= iou_lower_bound) {
         perception_msgs::msg::Detection3D detection3d;
         detection3d.header = lidar_det[i].header;
-        detection3d.label = lidar_det[i].label;
-        detection3d.score = lidar_det[i].score;
+        detection3d.label = camera_det[j].label;
+        detection3d.score = camera_det[j].score;
         detection3d.detection_id = lidar_det[i].detection_id;
         detection3d.bbox = lidar_det[i].bbox_3d[0];
-        d3d_array.detections.emplace_back(detection3d);
-      } else {
-        perception_msgs::msg::Detection3D detection3d;
-        detection3d.header = lidar_det[i].header;
-        detection3d.label = "UNKNOWN";
-        detection3d.score = lidar_det[i].score;
-        detection3d.detection_id = lidar_det[i].detection_id;
-        detection3d.bbox = lidar_det[i].bbox_3d[0];
-        d3d_array.detections.emplace_back(detection3d);
+        detection_3d_array.detections.emplace_back(detection3d);
       }
     }
   }
 
-  pub_->publish(d3d_array);
+  pub_->publish(detection_3d_array);
 }
 
 }  // namespace lidar_camera_fusion
