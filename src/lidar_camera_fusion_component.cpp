@@ -86,28 +86,20 @@ double LidarCameraFusionComponent::getIoU(
       b.center.x + b.size_x / 2.0, b.center.y + b.size_y / 2.0)(
       b.center.x + b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
       b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0);
-
-  std::vector<polygon> union_poly, intersection;
-  boost::geometry::union_(poly_a, poly_b, union_poly);
-  boost::geometry::intersection(poly_a, poly_b, intersection);
-
-  if ((intersection.size() == 1) && (union_poly.size() == 0))
-    return 0;
-  else {
+  if (
+    boost::geometry::intersects(poly_a, poly_b) || boost::geometry::within(poly_a, poly_b) ||
+    boost::geometry::within(poly_b, poly_a)) {
+    std::vector<polygon> union_poly, intersection;
+    boost::geometry::union_(poly_a, poly_b, union_poly);
+    boost::geometry::intersection(poly_a, poly_b, intersection);
     return boost::geometry::area(intersection[0]) / boost::geometry::area(union_poly[0]);
   }
-
   return 0;
 }
 
 void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
 {
-  if (!camera) {
-    // RCLCPP_ERROR_STREAM(get_logger(), __FILE__ << "," << __LINE__);
-    return;
-  }
-  if (!lidar) {
-    // RCLCPP_ERROR_STREAM(get_logger(), __FILE__ << "," << __LINE__);
+  if (!camera || !lidar) {
     return;
   }
 
@@ -129,10 +121,10 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
 
   for (size_t i = 0; i < m; ++i) {
     for (size_t j = 0; j < n; ++j) {
+      RCLCPP_WARN_STREAM(get_logger(), i << "," << j);
       iou_matrix[i][j] = getIoU(lidar_det[i].bbox, camera_det[j].bbox);
     }
   }
-
   std::vector<int> assignments;
   solver.Solve(iou_matrix, assignments);
 
@@ -150,7 +142,6 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
       detection3d.score = lidar_det[i].score;
       detection3d.detection_id = lidar_det[i].detection_id;
       detection3d.bbox = lidar_det[i].bbox_3d[0];
-
       d3d_array.detections.emplace_back(detection3d);
     }
   }
