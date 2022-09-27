@@ -92,7 +92,9 @@ double LidarCameraFusionComponent::getIoU(
     std::vector<polygon> union_poly, intersection;
     boost::geometry::union_(poly_a, poly_b, union_poly);
     boost::geometry::intersection(poly_a, poly_b, intersection);
-    return boost::geometry::area(intersection[0]) / boost::geometry::area(union_poly[0]);
+    if (intersection.size() == 1 && union_poly.size() == 1) {
+      return boost::geometry::area(intersection[0]) / boost::geometry::area(union_poly[0]);
+    }
   }
   return 0;
 }
@@ -135,14 +137,24 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
   for (size_t i = 0; i < assignments.size(); ++i) {
     size_t j = assignments[i];
 
-    if (iou_matrix[i][j] >= iou_lower_bound && lidar_det[i].bbox_3d.empty()) {
-      perception_msgs::msg::Detection3D detection3d;
-      detection3d.header = lidar_det[i].header;
-      detection3d.label = lidar_det[i].label;
-      detection3d.score = lidar_det[i].score;
-      detection3d.detection_id = lidar_det[i].detection_id;
-      detection3d.bbox = lidar_det[i].bbox_3d[0];
-      d3d_array.detections.emplace_back(detection3d);
+    if (lidar_det[i].bbox_3d.empty()) {
+      if (iou_matrix[i][j] >= iou_lower_bound) {
+        perception_msgs::msg::Detection3D detection3d;
+        detection3d.header = lidar_det[i].header;
+        detection3d.label = lidar_det[i].label;
+        detection3d.score = lidar_det[i].score;
+        detection3d.detection_id = lidar_det[i].detection_id;
+        detection3d.bbox = lidar_det[i].bbox_3d[0];
+        d3d_array.detections.emplace_back(detection3d);
+      } else {
+        perception_msgs::msg::Detection3D detection3d;
+        detection3d.header = lidar_det[i].header;
+        detection3d.label = "UNKNOWN";
+        detection3d.score = lidar_det[i].score;
+        detection3d.detection_id = lidar_det[i].detection_id;
+        detection3d.bbox = lidar_det[i].bbox_3d[0];
+        d3d_array.detections.emplace_back(detection3d);
+      }
     }
   }
 
