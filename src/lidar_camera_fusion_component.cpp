@@ -35,15 +35,15 @@ LidarCameraFusionComponent::LidarCameraFusionComponent(const rclcpp::NodeOptions
 : Node("lidar_camera_fusion_node", options)
 {
   pub_ =
-    this->create_publisher<perception_msgs::msg::Detection3DArray>("/detection/fusion_result", 1);
+    this->create_publisher<perception_msgs::msg::Detection3DArray>("detection/fusion_result", 1);
 
   // Specify the topic names from args
   std::string camera_topic;
-  declare_parameter("camera_topic", "/detection/camera");
+  declare_parameter("camera_topic", "detection/camera");
   get_parameter("camera_topic", camera_topic);
 
   std::string lidar_topic;
-  declare_parameter("lidar_topic", "/detection/lidar");
+  declare_parameter("lidar_topic", "detection/lidar");
   get_parameter("lidar_topic", lidar_topic);
 
   int duration_msec;
@@ -65,7 +65,8 @@ LidarCameraFusionComponent::LidarCameraFusionComponent(const rclcpp::NodeOptions
     &LidarCameraFusionComponent::callback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-double getIoU(vision_msgs::msg::BoundingBox2D a, vision_msgs::msg::BoundingBox2D b)
+double LidarCameraFusionComponent::getIoU(
+  const vision_msgs::msg::BoundingBox2D & a, const vision_msgs::msg::BoundingBox2D & b)
 {
   typedef boost::geometry::model::d2::point_xy<double> point;
   typedef boost::geometry::model::polygon<point> polygon;
@@ -85,17 +86,16 @@ double getIoU(vision_msgs::msg::BoundingBox2D a, vision_msgs::msg::BoundingBox2D
       b.center.x + b.size_x / 2.0, b.center.y + b.size_y / 2.0)(
       b.center.x + b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
       b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0);
-
-  std::vector<polygon> union_poly, intersection;
-  boost::geometry::union_(poly_a, poly_b, union_poly);
-  boost::geometry::intersection(poly_a, poly_b, intersection);
-
-  if ((intersection.size() == 1) && (union_poly.size() == 0))
-    return 0;
-  else {
-    return boost::geometry::area(intersection[0]) / boost::geometry::area(union_poly[0]);
+  if (
+    boost::geometry::intersects(poly_a, poly_b) || boost::geometry::within(poly_a, poly_b) ||
+    boost::geometry::within(poly_b, poly_a)) {
+    std::vector<polygon> union_poly, intersection;
+    boost::geometry::union_(poly_a, poly_b, union_poly);
+    boost::geometry::intersection(poly_a, poly_b, intersection);
+    if (intersection.size() == 1 && union_poly.size() == 1) {
+      return boost::geometry::area(intersection[0]) / boost::geometry::area(union_poly[0]);
+    }
   }
-
   return 0;
 }
 
@@ -126,30 +126,30 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
       iou_matrix[i][j] = getIoU(lidar_det[i].bbox, camera_det[j].bbox);
     }
   }
-
   std::vector<int> assignments;
   solver.Solve(iou_matrix, assignments);
 
   // Compose a message
-  perception_msgs::msg::Detection3DArray d3d_array;
-  d3d_array.header = lidar.value()->header;
+  perception_msgs::msg::Detection3DArray detection_3d_array;
+  detection_3d_array.header = lidar.value()->header;
   // Filter detections
   for (size_t i = 0; i < assignments.size(); ++i) {
     size_t j = assignments[i];
 
-    if (iou_matrix[i][j] >= iou_lower_bound && lidar_det[i].bbox_3d.empty()) {
-      perception_msgs::msg::Detection3D detection3d;
-      detection3d.header = lidar_det[i].header;
-      detection3d.label = lidar_det[i].label;
-      detection3d.score = lidar_det[i].score;
-      detection3d.detection_id = lidar_det[i].detection_id;
-      detection3d.bbox = lidar_det[i].bbox_3d[0];
-
-      d3d_array.detections.emplace_back(detection3d);
+    if (!lidar_det[i].bbox_3d.empty()) {
+      if (iou_matrix[i][j] >= iou_lower_bound) {
+        perception_msgs::msg::Detection3D detection3d;
+        detection3d.header = lidar_det[i].header;
+        detection3d.label = camera_det[j].label;
+        detection3d.score = camera_det[j].score;
+        detection3d.detection_id = lidar_det[i].detection_id;
+        detection3d.bbox = lidar_det[i].bbox_3d[0];
+        detection_3d_array.detections.emplace_back(detection3d);
+      }
     }
   }
 
-  pub_->publish(d3d_array);
+  pub_->publish(detection_3d_array);
 }
 
 }  // namespace lidar_camera_fusion
