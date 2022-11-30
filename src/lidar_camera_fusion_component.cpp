@@ -82,7 +82,7 @@ double LidarCameraFusionComponent::getIoU(
 #endif
 #if defined(HUMBLE)
   boost::geometry::exterior_ring(poly_a) =
-    boost::assign::list_of<point>(a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0)(
+    boost::assign::list_of<point>(a.center.position.x - a.size_x / 2.0, a.center.position.y - a.size_y / 2.0)(
       a.center.position.x - a.size_x / 2.0, a.center.position.y + a.size_y / 2.0)(
       a.center.position.x + a.size_x / 2.0, a.center.position.y + a.size_y / 2.0)(
       a.center.position.x + a.size_x / 2.0, a.center.position.y - a.size_y / 2.0)(
@@ -100,7 +100,7 @@ double LidarCameraFusionComponent::getIoU(
 #endif
 #if defined(HUMBLE)
   boost::geometry::exterior_ring(poly_b) =
-    boost::assign::list_of<point>(b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
+    boost::assign::list_of<point>(b.center.position.x - b.size_x / 2.0, b.center.position.y - b.size_y / 2.0)(
       b.center.position.x - b.size_x / 2.0, b.center.position.y + b.size_y / 2.0)(
       b.center.position.x + b.size_x / 2.0, b.center.position.y + b.size_y / 2.0)(
       b.center.position.x + b.size_x / 2.0, b.center.position.y - b.size_y / 2.0)(
