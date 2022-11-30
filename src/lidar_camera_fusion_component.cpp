@@ -72,20 +72,40 @@ double LidarCameraFusionComponent::getIoU(
   typedef boost::geometry::model::polygon<point> polygon;
 
   polygon poly_a;
+#if defined(GALACTIC)
+  boost::geometry::exterior_ring(poly_a) =
+    boost::assign::list_of<point>(a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0)(
+      a.center.x - a.size_x / 2.0, a.center.y + a.size_y / 2.0)(
+      a.center.x + a.size_x / 2.0, a.center.y + a.size_y / 2.0)(
+      a.center.x + a.size_x / 2.0, a.center.y - a.size_y / 2.0)(
+      a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0);
+#endif
+#if defined(HUMBLE)
   boost::geometry::exterior_ring(poly_a) =
     boost::assign::list_of<point>(a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0)(
       a.center.position.x - a.size_x / 2.0, a.center.position.y + a.size_y / 2.0)(
       a.center.position.x + a.size_x / 2.0, a.center.position.y + a.size_y / 2.0)(
       a.center.position.x + a.size_x / 2.0, a.center.position.y - a.size_y / 2.0)(
       a.center.position.x - a.size_x / 2.0, a.center.position.y - a.size_y / 2.0);
+#endif
 
   polygon poly_b;
+#if defined(GALACTIC)
+  boost::geometry::exterior_ring(poly_b) =
+    boost::assign::list_of<point>(b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
+      b.center.x - b.size_x / 2.0, b.center.y + b.size_y / 2.0)(
+      b.center.x + b.size_x / 2.0, b.center.y + b.size_y / 2.0)(
+      b.center.x + b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
+      b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0);
+#endif
+#if defined(HUMBLE)
   boost::geometry::exterior_ring(poly_b) =
     boost::assign::list_of<point>(b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
       b.center.position.x - b.size_x / 2.0, b.center.position.y + b.size_y / 2.0)(
       b.center.position.x + b.size_x / 2.0, b.center.position.y + b.size_y / 2.0)(
       b.center.position.x + b.size_x / 2.0, b.center.position.y - b.size_y / 2.0)(
       b.center.position.x - b.size_x / 2.0, b.center.position.y - b.size_y / 2.0);
+#endif
   if (
     boost::geometry::intersects(poly_a, poly_b) || boost::geometry::within(poly_a, poly_b) ||
     boost::geometry::within(poly_b, poly_a)) {
