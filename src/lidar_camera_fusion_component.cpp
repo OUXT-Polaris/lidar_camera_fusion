@@ -74,18 +74,18 @@ double LidarCameraFusionComponent::getIoU(
   polygon poly_a;
   boost::geometry::exterior_ring(poly_a) =
     boost::assign::list_of<point>(a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0)(
-      a.center.x - a.size_x / 2.0, a.center.y + a.size_y / 2.0)(
-      a.center.x + a.size_x / 2.0, a.center.y + a.size_y / 2.0)(
-      a.center.x + a.size_x / 2.0, a.center.y - a.size_y / 2.0)(
-      a.center.x - a.size_x / 2.0, a.center.y - a.size_y / 2.0);
+      a.center.position.x - a.size_x / 2.0, a.center.position.y + a.size_y / 2.0)(
+      a.center.position.x + a.size_x / 2.0, a.center.position.y + a.size_y / 2.0)(
+      a.center.position.x + a.size_x / 2.0, a.center.position.y - a.size_y / 2.0)(
+      a.center.position.x - a.size_x / 2.0, a.center.position.y - a.size_y / 2.0);
 
   polygon poly_b;
   boost::geometry::exterior_ring(poly_b) =
     boost::assign::list_of<point>(b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
-      b.center.x - b.size_x / 2.0, b.center.y + b.size_y / 2.0)(
-      b.center.x + b.size_x / 2.0, b.center.y + b.size_y / 2.0)(
-      b.center.x + b.size_x / 2.0, b.center.y - b.size_y / 2.0)(
-      b.center.x - b.size_x / 2.0, b.center.y - b.size_y / 2.0);
+      b.center.position.x - b.size_x / 2.0, b.center.position.y + b.size_y / 2.0)(
+      b.center.position.x + b.size_x / 2.0, b.center.position.y + b.size_y / 2.0)(
+      b.center.position.x + b.size_x / 2.0, b.center.position.y - b.size_y / 2.0)(
+      b.center.position.x - b.size_x / 2.0, b.center.position.y - b.size_y / 2.0);
   if (
     boost::geometry::intersects(poly_a, poly_b) || boost::geometry::within(poly_a, poly_b) ||
     boost::geometry::within(poly_b, poly_a)) {
