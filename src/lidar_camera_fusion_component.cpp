@@ -130,16 +130,16 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
 
   // Allocate 2-dim array in advance.
   std::vector<std::vector<double>> iou_matrix;
-  size_t m = lidar.value()->detections.size();
-  size_t n = camera.value()->detections.size();
+  size_t m = lidar.value().detections.size();
+  size_t n = camera.value().detections.size();
 
   // See: https://stackoverflow.com/questions/15889578/how-can-i-resize-a-2d-vector-of-objects-given-the-width-and-height
   iou_matrix.resize(m, std::vector<double>(n));
 
   // Calculate all the IoUs.
   // The number of the items should be m * n.
-  auto lidar_det = lidar.value()->detections;
-  auto camera_det = camera.value()->detections;
+  auto lidar_det = lidar.value().detections;
+  auto camera_det = camera.value().detections;
 
   for (size_t i = 0; i < m; ++i) {
     for (size_t j = 0; j < n; ++j) {
@@ -151,7 +151,7 @@ void LidarCameraFusionComponent::callback(CallbackT camera, CallbackT lidar)
 
   // Compose a message
   perception_msgs::msg::Detection3DArray detection_3d_array;
-  detection_3d_array.header = lidar.value()->header;
+  detection_3d_array.header = lidar.value().header;
   // Filter detections
   for (size_t i = 0; i < assignments.size(); ++i) {
     size_t j = assignments[i];
