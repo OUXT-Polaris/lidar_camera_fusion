@@ -27,10 +27,10 @@
 
 namespace lidar_camera_fusion
 {
-typedef message_synchronizer::MessageSynchronizer2<
-  perception_msgs::msg::Detection2DArray, perception_msgs::msg::Detection2DArray>
-  Sync2T;
-typedef const boost::optional<const perception_msgs::msg::Detection2DArray::SharedPtr> & CallbackT;
+
+using Detection2DArrayT = perception_msgs::msg::Detection2DArray;
+using Sync2T = message_synchronizer::MessageSynchronizer2<Detection2DArrayT, Detection2DArrayT>;
+using CallbackT = const std::optional<Detection2DArrayT> &;
 
 class LidarCameraFusionComponent : public rclcpp::Node
 {
